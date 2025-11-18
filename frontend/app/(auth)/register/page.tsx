@@ -158,9 +158,9 @@ export default function RegisterPage() {
               <input
                 type="checkbox"
                 {...register('agreeToTerms')}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded mt-1 bg-white dark:bg-gray-800"
               />
-              <label className="ml-2 block text-sm text-gray-900">
+              <label className="ml-2 block text-sm text-gray-900 dark:text-gray-300">
                 I agree to the{' '}
                 <a href="#" className="text-blue-600 hover:text-blue-500">
                   Terms and Conditions
