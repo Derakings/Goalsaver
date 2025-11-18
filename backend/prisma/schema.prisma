@@ -1,0 +1,127 @@
+// Prisma schema for Goalsaver
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String          @id @default(uuid())
+  email         String          @unique
+  password      String
+  firstName     String
+  lastName      String
+  phone         String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  groups        GroupMember[]
+  contributions Contribution[]
+  notifications Notification[]
+}
+
+model Group {
+  id              String          @id @default(uuid())
+  name            String
+  description     String
+  targetAmount    Decimal         @db.Decimal(10, 2)
+  currentAmount   Decimal         @default(0) @db.Decimal(10, 2)
+  targetItem      String
+  deadline        DateTime?
+  status          GroupStatus     @default(SAVING)
+  isPublic        Boolean         @default(false)
+  createdById     String
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  members         GroupMember[]
+  contributions   Contribution[]
+  purchases       Purchase[]
+}
+
+model GroupMember {
+  id        String     @id @default(uuid())
+  userId    String
+  groupId   String
+  role      MemberRole @default(MEMBER)
+  joinedAt  DateTime   @default(now())
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group     Group      @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, groupId])
+  @@index([userId])
+  @@index([groupId])
+}
+
+model Contribution {
+  id        String   @id @default(uuid())
+  amount    Decimal  @db.Decimal(10, 2)
+  userId    String
+  groupId   String
+  note      String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([groupId])
+  @@index([createdAt])
+}
+
+model Purchase {
+  id              String         @id @default(uuid())
+  groupId         String
+  totalAmount     Decimal        @db.Decimal(10, 2)
+  status          PurchaseStatus @default(PENDING)
+  purchaseDetails Json?
+  initiatedAt     DateTime       @default(now())
+  completedAt     DateTime?
+  group           Group          @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@index([groupId])
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  type      NotificationType
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+enum GroupStatus {
+  SAVING
+  TARGET_REACHED
+  PROCESSING_PURCHASE
+  COMPLETED
+  CANCELLED
+}
+
+enum MemberRole {
+  ADMIN
+  MEMBER
+}
+
+enum PurchaseStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum NotificationType {
+  GROUP_JOINED
+  CONTRIBUTION_MADE
+  TARGET_MILESTONE
+  TARGET_REACHED
+  PURCHASE_INITIATED
+  PURCHASE_COMPLETED
+}

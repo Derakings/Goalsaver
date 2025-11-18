@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: goalsaver-db
+    environment:
+      POSTGRES_USER: goalsaver
+      POSTGRES_PASSWORD: goalsaver_password
+      POSTGRES_DB: goalsaver
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U goalsaver"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: goalsaver-api
+    environment:
+      DATABASE_URL: postgresql://goalsaver:goalsaver_password@postgres:5432/goalsaver
+      JWT_SECRET: development-secret-key-change-in-production
+      JWT_EXPIRY: 7d
+      PORT: 3000
+      NODE_ENV: production
+      SMTP_HOST: ""
+      SMTP_PORT: 587
+      SMTP_USER: ""
+      SMTP_PASS: ""
+      SMTP_FROM: noreply@goalsaver.com
+      FRONTEND_URL: http://localhost:3001
+      RATE_LIMIT_WINDOW_MS: 900000
+      RATE_LIMIT_MAX_REQUESTS: 100
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: >
+      sh -c "
+        npx prisma migrate deploy &&
+        node dist/server.js
+      "
+
+volumes:
+  postgres_data:
