@@ -58,7 +58,13 @@ export function GroupProvider({ children }: { children: ReactNode }) {
   const createGroup = async (data: CreateGroupData) => {
     setLoading(true);
     try {
-      const newGroup = await groupsApi.create(data);
+      // Ensure targetAmount is a number
+      const payload = {
+        ...data,
+        targetAmount: parseFloat(data.targetAmount as any) || 0
+      };
+      
+      const newGroup = await groupsApi.create(payload);
       setGroups((prev) => [...prev, newGroup]);
       return newGroup;
     } catch (error) {

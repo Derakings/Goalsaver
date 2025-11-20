@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { DollarSign } from 'lucide-react';
+import { Banknote } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Alert } from '@/components/ui/Alert';
@@ -16,7 +16,7 @@ const contributionSchema = z.object({
   amount: z
     .number()
     .positive('Amount must be positive')
-    .min(1, 'Minimum contribution is $1'),
+    .min(1, 'Minimum contribution is ₦1'),
   note: z.string().optional(),
 });
 
@@ -78,7 +78,7 @@ export function ContributionForm({
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <DollarSign className="h-5 w-5 text-gray-400" />
+            <Banknote className="h-5 w-5 text-gray-400" />
           </div>
           <input
             type="number"

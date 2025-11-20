@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { DollarSign, Users, Trophy, ShoppingCart, ArrowRight } from 'lucide-react';
+import { Banknote, Users, Trophy, ShoppingCart, ArrowRight } from 'lucide-react';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { formatRelativeTime } from '@/lib/utils';
 import { ROUTES } from '@/lib/constants';
@@ -14,7 +14,7 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
   const getActivityIcon = (type: string) => {
     switch (type) {
       case 'contribution':
-        return <DollarSign className="w-5 h-5 text-green-500" />;
+        return <Banknote className="w-5 h-5 text-green-500" />;
       case 'group_joined':
         return <Users className="w-5 h-5 text-blue-500" />;
       case 'target_reached':
@@ -22,7 +22,7 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
       case 'purchase_completed':
         return <ShoppingCart className="w-5 h-5 text-purple-500" />;
       default:
-        return <DollarSign className="w-5 h-5 text-gray-500" />;
+        return <Banknote className="w-5 h-5 text-gray-500" />;
     }
   };
 

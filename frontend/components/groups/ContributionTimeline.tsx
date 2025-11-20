@@ -1,5 +1,5 @@
 import React from 'react';
-import { DollarSign } from 'lucide-react';
+import { Banknote } from 'lucide-react';
 import { formatCurrency, formatRelativeTime, getInitials } from '@/lib/utils';
 import type { Contribution } from '@/types';
 
@@ -16,7 +16,7 @@ export function ContributionTimeline({ contributions }: ContributionTimelineProp
 
       {contributions.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
-          <DollarSign className="w-12 h-12 mx-auto mb-2 opacity-50" />
+          <Banknote className="w-12 h-12 mx-auto mb-2 opacity-50" />
           <p>No contributions yet</p>
         </div>
       ) : (

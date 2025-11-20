@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, DollarSign, Users, Trophy, ShoppingCart } from 'lucide-react';
+import { Bell, Banknote, Users, Trophy, ShoppingCart } from 'lucide-react';
 import { formatRelativeTime } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import type { Notification } from '@/types';
@@ -13,7 +13,7 @@ export function NotificationItem({ notification, onClick }: NotificationItemProp
   const getIcon = (type: string) => {
     switch (type) {
       case 'contribution':
-        return <DollarSign className="w-5 h-5 text-green-500" />;
+        return <Banknote className="w-5 h-5 text-green-500" />;
       case 'group_joined':
         return <Users className="w-5 h-5 text-blue-500" />;
       case 'target_reached':

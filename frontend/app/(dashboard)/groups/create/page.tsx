@@ -21,7 +21,7 @@ const createGroupSchema = z.object({
   targetAmount: z
     .number()
     .positive('Target amount must be positive')
-    .min(1, 'Minimum target is $1'),
+    .min(1, 'Minimum target is ₦1'),
   targetItem: z.string().min(3, 'Target item must be at least 3 characters'),
   deadline: z.string().optional(),
   isPublic: z.boolean(),
@@ -118,7 +118,7 @@ export default function CreateGroupPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Target Amount ($)
+                Target Amount (₦)
               </label>
               <input
                 type="number"
