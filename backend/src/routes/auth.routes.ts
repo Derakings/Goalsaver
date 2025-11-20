@@ -35,4 +35,11 @@ router.get('/me', authenticate, authController.getProfile.bind(authController));
  */
 router.put('/profile', authenticate, validate(updateProfileSchema), authController.updateProfile.bind(authController));
 
+/**
+ * @route   POST /api/auth/logout
+ * @desc    Logout user (client-side token removal)
+ * @access  Public
+ */
+router.post('/logout', authController.logout.bind(authController));
+
 export default router;

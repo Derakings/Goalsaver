@@ -12,6 +12,7 @@ import groupRoutes from './routes/group.routes';
 import contributionRoutes from './routes/contribution.routes';
 import purchaseRoutes from './routes/purchase.routes';
 import notificationRoutes from './routes/notification.routes';
+import dashboardRoutes from './routes/dashboard.routes';
 
 const app = express();
 
@@ -61,6 +62,7 @@ app.use('/api/groups', groupRoutes);
 app.use('/api/contributions', contributionRoutes);
 app.use('/api/purchases', purchaseRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Root endpoint
 app.get('/', (_req: Request, res: Response) => {
@@ -75,6 +77,7 @@ app.get('/', (_req: Request, res: Response) => {
       contributions: '/api/contributions',
       purchases: '/api/purchases',
       notifications: '/api/notifications',
+      dashboard: '/api/dashboard',
     },
   });
 });

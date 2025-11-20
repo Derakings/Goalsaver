@@ -54,4 +54,16 @@ export class AuthController {
       next(error);
     }
   }
+
+  async logout(_req: Request, res: Response, next: NextFunction) {
+    try {
+      // Since JWT is stateless, logout is handled client-side by removing the token
+      res.status(200).json({
+        success: true,
+        message: 'Logged out successfully',
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
