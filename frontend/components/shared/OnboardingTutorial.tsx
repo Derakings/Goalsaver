@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronRight, ChevronLeft, Users, Bell, Plus, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { authApi } from '@/lib/api';
 
 interface OnboardingTutorialProps {
   onComplete: () => void;
@@ -60,13 +61,21 @@ export function OnboardingTutorial({ onComplete }: OnboardingTutorialProps) {
     }
   };
 
-  const handleComplete = () => {
-    localStorage.setItem('hasSeenTutorial', 'true');
+  const handleComplete = async () => {
+    try {
+      await authApi.completeTutorial();
+    } catch (error) {
+      console.error('Failed to mark tutorial as completed:', error);
+    }
     onComplete();
   };
 
-  const handleSkip = () => {
-    localStorage.setItem('hasSeenTutorial', 'true');
+  const handleSkip = async () => {
+    try {
+      await authApi.completeTutorial();
+    } catch (error) {
+      console.error('Failed to mark tutorial as completed:', error);
+    }
     onComplete();
   };
 

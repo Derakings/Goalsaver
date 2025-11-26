@@ -1,14 +1,13 @@
-import nodemailer from 'nodemailer';
+import { createTransport } from 'nodemailer';
 import { config } from '../config/database';
 import { EmailOptions } from '../types';
 import { logger } from './logger';
 
 // Create reusable transporter
 const createTransporter = () => {
-  // In production, use real SMTP credentials
-  // For development, create a test account
-  if (config.nodeEnv === 'production' && config.smtp.host) {
-    return nodemailer.createTransport({
+  // Use real SMTP credentials if configured
+  if (config.smtp.host && config.smtp.host !== 'smtp.example.com') {
+    return createTransport({
       host: config.smtp.host,
       port: config.smtp.port,
       secure: config.smtp.port === 465,
@@ -19,7 +18,7 @@ const createTransporter = () => {
     });
   }
 
-  // For development/testing, log instead of sending
+  // If SMTP not configured, log instead of sending
   return null;
 };
 
@@ -62,6 +61,30 @@ export const emailTemplates = {
     html: `<h2>Hi ${firstName},</h2><p>Welcome to Goalsaver! Start saving with your community today.</p><p>Best regards,<br>The Goalsaver Team</p>`,
   }),
 
+  groupCreated: (firstName: string, groupName: string, targetItem: string) => ({
+    subject: `Group "${groupName}" created successfully!`,
+    text: `Hi ${firstName},\n\nYour savings group "${groupName}" for ${targetItem} has been created successfully! You can now invite members and start contributing.\n\nBest regards,\nThe Goalsaver Team`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+          <h1 style="color: white; margin: 0;">🎉 Group Created!</h1>
+        </div>
+        <div style="background-color: white; padding: 40px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+          <h2 style="color: #333; margin-top: 0;">Hi ${firstName},</h2>
+          <p style="color: #666; font-size: 16px;">Your savings group has been created successfully!</p>
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="margin: 0 0 10px 0; font-size: 20px;">${groupName}</h3>
+            <p style="margin: 0; opacity: 0.9;">Target: ${targetItem}</p>
+          </div>
+          <p style="color: #666; font-size: 16px;">You can now invite members and start contributing towards your goal!</p>
+        </div>
+        <div style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
+          <p>© 2025 Goalsaver. All rights reserved.</p>
+        </div>
+      </div>
+    `,
+  }),
+
   groupJoined: (firstName: string, groupName: string) => ({
     subject: `You joined ${groupName}`,
     text: `Hi ${firstName},\n\nYou have successfully joined the group "${groupName}". Start contributing towards your goal!\n\nBest regards,\nThe Goalsaver Team`,
@@ -102,5 +125,59 @@ export const emailTemplates = {
     subject: `✅ Purchase completed for ${groupName}`,
     text: `Hi ${firstName},\n\nThe purchase for "${groupName}" has been completed successfully!\n\nBest regards,\nThe Goalsaver Team`,
     html: `<h2>Hi ${firstName},</h2><p>The purchase for "${groupName}" has been completed successfully!</p><p>Best regards,<br>The Goalsaver Team</p>`,
+  }),
+
+  otpVerification: (otp: string) => ({
+    subject: 'Verify Your Email - Goalsaver',
+    text: `Your verification code is: ${otp}\n\nThis code will expire in 5 minutes.\n\nIf you didn't request this, please ignore this email.\n\nBest regards,\nThe Goalsaver Team`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+          <h1 style="color: white; margin: 0;">Goalsaver</h1>
+        </div>
+        <div style="background-color: white; padding: 40px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+          <h2 style="color: #333; margin-top: 0;">Verify Your Email</h2>
+          <p style="color: #666; font-size: 16px;">Enter this code to verify your email address:</p>
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 32px; font-weight: bold; text-align: center; padding: 20px; border-radius: 8px; letter-spacing: 8px; margin: 30px 0;">
+            ${otp}
+          </div>
+          <p style="color: #999; font-size: 14px; text-align: center;">This code expires in 5 minutes</p>
+          <p style="color: #666; font-size: 14px; margin-top: 30px;">If you didn't request this verification, please ignore this email.</p>
+        </div>
+        <div style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
+          <p>© 2025 Goalsaver. All rights reserved.</p>
+        </div>
+      </div>
+    `,
+  }),
+
+  passwordReset: (otp: string) => ({
+    subject: 'Reset Your Password - Goalsaver',
+    text: `Your password reset code is: ${otp}\n\nThis code will expire in 5 minutes.\n\nIf you didn't request this, please ignore this email.\n\nBest regards,\nThe Goalsaver Team`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
+        <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+          <h1 style="color: white; margin: 0;">Goalsaver</h1>
+        </div>
+        <div style="background-color: white; padding: 40px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+          <h2 style="color: #333; margin-top: 0;">Reset Your Password</h2>
+          <p style="color: #666; font-size: 16px;">Use this code to reset your password:</p>
+          <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; font-size: 32px; font-weight: bold; text-align: center; padding: 20px; border-radius: 8px; letter-spacing: 8px; margin: 30px 0;">
+            ${otp}
+          </div>
+          <p style="color: #999; font-size: 14px; text-align: center;">This code expires in 5 minutes</p>
+          <p style="color: #666; font-size: 14px; margin-top: 30px;">If you didn't request this password reset, please ignore this email and your password will remain unchanged.</p>
+        </div>
+        <div style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
+          <p>© 2025 Goalsaver. All rights reserved.</p>
+        </div>
+      </div>
+    `,
+  }),
+
+  newLogin: (firstName: string, deviceInfo: string, location: string) => ({
+    subject: 'New Login to Your Goalsaver Account',
+    text: `Hi ${firstName},\n\nWe detected a new login to your account.\n\nDevice: ${deviceInfo}\nLocation: ${location}\nTime: ${new Date().toLocaleString()}\n\nIf this wasn't you, please secure your account immediately.\n\nBest regards,\nThe Goalsaver Team`,
+    html: `<h2>Hi ${firstName},</h2><p>We detected a new login to your account.</p><p><strong>Device:</strong> ${deviceInfo}<br><strong>Location:</strong> ${location}<br><strong>Time:</strong> ${new Date().toLocaleString()}</p><p>If this wasn't you, please secure your account immediately.</p><p>Best regards,<br>The Goalsaver Team</p>`,
   }),
 };

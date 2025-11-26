@@ -29,10 +29,10 @@ export function GroupProvider({ children }: { children: ReactNode }) {
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchGroups = async () => {
+  const fetchGroups = async (myGroupsOnly = true) => {
     setLoading(true);
     try {
-      const data = await groupsApi.getAll();
+      const data = await groupsApi.getAll(myGroupsOnly);
       setGroups(data);
     } catch (error) {
       console.error('Failed to fetch groups:', error);
@@ -41,7 +41,6 @@ export function GroupProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     }
   };
-
   const fetchGroup = async (id: string) => {
     setLoading(true);
     try {
@@ -58,11 +57,26 @@ export function GroupProvider({ children }: { children: ReactNode }) {
   const createGroup = async (data: CreateGroupData) => {
     setLoading(true);
     try {
-      // Ensure targetAmount is a number
-      const payload = {
-        ...data,
-        targetAmount: parseFloat(data.targetAmount as any) || 0
+      // Convert targetAmount to number and clean up optional fields
+      const payload: any = {
+        name: data.name,
+        description: data.description,
+        targetAmount: typeof data.targetAmount === 'string' 
+          ? parseFloat(data.targetAmount) 
+          : data.targetAmount,
+        targetItem: data.targetItem,
+        isPublic: data.isPublic,
       };
+      
+      // Only include deadline if it has a value
+      if (data.deadline && data.deadline.trim() !== '') {
+        payload.deadline = data.deadline;
+      }
+      
+      // Only include imageUrl if it has a value
+      if (data.imageUrl && data.imageUrl.trim() !== '') {
+        payload.imageUrl = data.imageUrl;
+      }
       
       const newGroup = await groupsApi.create(payload);
       setGroups((prev) => [...prev, newGroup]);

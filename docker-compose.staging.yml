@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: goalsaver-db-staging
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: goalsaver
+      POSTGRES_PASSWORD: goalsaver_staging_password
+      POSTGRES_DB: goalsaver
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_staging_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U goalsaver"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - goalsaver-network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    container_name: goalsaver-backend-staging
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://goalsaver:goalsaver_staging_password@postgres:5432/goalsaver
+      JWT_SECRET: staging-secret-key-change-in-production
+      JWT_EXPIRY: 7d
+      PORT: 3000
+      NODE_ENV: staging
+      SMTP_HOST: ""
+      SMTP_PORT: 587
+      SMTP_USER: ""
+      SMTP_PASS: ""
+      SMTP_FROM: noreply@goalsaver.com
+      FRONTEND_URL: http://localhost:3001
+      RATE_LIMIT_WINDOW_MS: 900000
+      RATE_LIMIT_MAX_REQUESTS: 100
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: sh -c "npx prisma migrate deploy && npm run dev"
+    networks:
+      - goalsaver-network
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: development
+    container_name: goalsaver-frontend-staging
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3000/api
+      NODE_ENV: staging
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - backend
+    command: npm run dev
+    networks:
+      - goalsaver-network
+
+volumes:
+  postgres_staging_data:
+
+networks:
+  goalsaver-network:
+    driver: bridge

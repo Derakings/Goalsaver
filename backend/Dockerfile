@@ -1,10 +1,30 @@
-# Multi-stage build for production
+# Multi-stage build for backend
 
-# Stage 1: Build
-FROM node:18-alpine AS builder
-
+# Base stage
+FROM node:20-alpine AS base
 WORKDIR /app
 
+# Development stage
+FROM base AS development
+# Install dependencies for development
+COPY package*.json ./
+COPY prisma ./prisma/
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Generate Prisma Client
+RUN npx prisma generate
+
+# Expose port
+EXPOSE 3000
+
+# Start development server
+CMD ["npm", "run", "dev"]
+
+# Build stage
+FROM base AS builder
 # Copy package files
 COPY package*.json ./
 COPY prisma ./prisma/
@@ -16,15 +36,13 @@ RUN npm ci
 COPY . .
 
 # Generate Prisma Client
-RUN npm run prisma:generate
+RUN npx prisma generate
 
 # Build TypeScript
 RUN npm run build
 
-# Stage 2: Production
-FROM node:18-alpine AS production
-
-WORKDIR /app
+# Production stage
+FROM base AS production
 
 # Install dumb-init for proper signal handling
 RUN apk add --no-cache dumb-init
@@ -33,7 +51,7 @@ RUN apk add --no-cache dumb-init
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
 
-# Copy package files
+# Copy package files and prisma schema
 COPY package*.json ./
 COPY prisma ./prisma/
 
@@ -43,8 +61,8 @@ RUN npm ci --only=production && npm cache clean --force
 # Copy built application from builder
 COPY --from=builder /app/dist ./dist
 
-# Generate Prisma Client
-RUN npm run prisma:generate
+# Generate Prisma Client for production
+RUN npx prisma generate
 
 # Change ownership to non-root user
 RUN chown -R nodejs:nodejs /app

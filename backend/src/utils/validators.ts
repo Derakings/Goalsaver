@@ -26,8 +26,9 @@ export const createGroupSchema = z.object({
   description: z.string().min(1, 'Description is required').max(500),
   targetAmount: z.number().positive('Target amount must be positive'),
   targetItem: z.string().min(1, 'Target item is required'),
-  deadline: z.string().datetime().optional(),
+  deadline: z.string().optional().nullable(),
   isPublic: z.boolean().default(false),
+  imageUrl: z.string().optional().nullable(),
 });
 
 export const updateGroupSchema = z.object({
@@ -35,7 +36,7 @@ export const updateGroupSchema = z.object({
   description: z.string().min(1).max(500).optional(),
   targetAmount: z.number().positive().optional(),
   targetItem: z.string().min(1).optional(),
-  deadline: z.string().datetime().optional(),
+  deadline: z.string().optional(),
   isPublic: z.boolean().optional(),
 });
 

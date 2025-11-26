@@ -59,11 +59,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(response.user);
       localStorage.setItem('token', response.token);
       localStorage.setItem('user', JSON.stringify(response.user));
-      setIsNewUser(false);
+      // Set isNewUser based on whether tutorial has been completed
+      const isNew = !response.user.hasCompletedTutorial;
+      setIsNewUser(isNew);
       setShowWelcome(true);
       router.push(ROUTES.DASHBOARD);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login failed:', error);
+      // Check if email verification is required
+      if (error.response?.status === 403 && error.response?.data?.data?.userId) {
+        const { userId, email } = error.response.data.data;
+        router.push(`/verify-email?userId=${userId}&email=${encodeURIComponent(email)}`);
+        throw new Error('Please verify your email before logging in');
+      }
       throw error;
     }
   };
@@ -71,12 +79,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (data: RegisterData) => {
     try {
       const response = await authApi.register(data);
-      setUser(response.user);
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
-      setIsNewUser(true);
-      setShowWelcome(true);
-      router.push(ROUTES.DASHBOARD);
+      // Registration now requires email verification
+      // Redirect to OTP verification page
+      router.push(`/verify-email?userId=${response.user.id}&email=${encodeURIComponent(response.user.email)}`);
     } catch (error) {
       console.error('Registration failed:', error);
       throw error;

@@ -17,19 +17,17 @@ export default function DashboardLayout({
   const [showTutorial, setShowTutorial] = useState(false);
 
   useEffect(() => {
-    // Check if user has seen the tutorial
-    const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
-    if (!hasSeenTutorial && user) {
+    // Check if user hasn't completed the tutorial
+    if (user && !user.hasCompletedTutorial && isNewUser) {
       // Show tutorial after a short delay (after welcome message)
       const timer = setTimeout(() => {
         setShowTutorial(true);
       }, 3500);
       return () => clearTimeout(timer);
     }
-  }, [user]);
+  }, [user, isNewUser]);
 
   const handleShowTutorial = () => {
-    localStorage.removeItem('hasSeenTutorial');
     setShowTutorial(true);
   };
 

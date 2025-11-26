@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Users as UsersIcon, Calendar, DollarSign } from 'lucide-react';
+import { ArrowLeft, Users as UsersIcon, Calendar, Banknote, UserPlus, Trash } from 'lucide-react';
 import { GroupProgress } from '@/components/groups/GroupProgress';
 import { MembersList } from '@/components/groups/MembersList';
 import { ContributionTimeline } from '@/components/groups/ContributionTimeline';
@@ -25,7 +25,10 @@ export default function GroupDetailPage() {
   const { selectedGroup, contributions, fetchGroup, fetchContributions, joinGroup, loading } =
     useGroups();
   const [contributionModalOpen, setContributionModalOpen] = useState(false);
+  const [memberManagementModalOpen, setMemberManagementModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const groupId = params.id as string;
 
@@ -59,6 +62,26 @@ export default function GroupDetailPage() {
     setContributionModalOpen(false);
     fetchGroup(groupId);
     fetchContributions(groupId);
+  };
+
+  const handleDeleteGroup = async () => {
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/groups/${groupId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      if (!response.ok) throw new Error('Failed to delete group');
+      toast.success('Group deleted successfully');
+      router.push(ROUTES.GROUPS);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete group');
+    } finally {
+      setIsDeleting(false);
+      setDeleteModalOpen(false);
+    }
   };
 
   if (loading || !selectedGroup) {
@@ -116,7 +139,7 @@ export default function GroupDetailPage() {
                 </div>
               )}
               <div className="flex items-center">
-                <DollarSign className="w-5 h-5 mr-2 text-green-500" />
+                <Banknote className="w-5 h-5 mr-2 text-green-500" />
                 <span>Created {formatDate(selectedGroup.createdAt)}</span>
               </div>
             </div>
@@ -132,14 +155,29 @@ export default function GroupDetailPage() {
                     size="lg"
                     onClick={() => setContributionModalOpen(true)}
                   >
-                    <DollarSign className="w-5 h-5 mr-2" />
+                    <Banknote className="w-5 h-5 mr-2" />
                     Add Contribution
                   </Button>
                 )}
                 {isAdmin && (
-                  <Button variant="secondary" size="lg">
-                    Manage Group
-                  </Button>
+                  <>
+                    <Button 
+                      variant="secondary" 
+                      size="lg"
+                      onClick={() => setMemberManagementModalOpen(true)}
+                    >
+                      <UserPlus className="w-5 h-5 mr-2" />
+                      Manage Members
+                    </Button>
+                    <Button 
+                      variant="danger" 
+                      size="lg"
+                      onClick={() => setDeleteModalOpen(true)}
+                    >
+                      <Trash className="w-5 h-5 mr-2" />
+                      Delete Group
+                    </Button>
+                  </>
                 )}
               </>
             ) : (
@@ -184,6 +222,118 @@ export default function GroupDetailPage() {
           remainingAmount={selectedGroup.targetAmount - selectedGroup.currentAmount}
           onSuccess={handleContributionSuccess}
         />
+      </Modal>
+
+      {/* Member Management Modal */}
+      <Modal
+        isOpen={memberManagementModalOpen}
+        onClose={() => setMemberManagementModalOpen(false)}
+        title="Manage Group Members"
+        size="lg"
+      >
+        <div className="space-y-6">
+          {/* Share Link Section */}
+          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+            <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2">
+              Invite Members
+            </h3>
+            <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
+              Share this link with others to let them join your group:
+            </p>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                readOnly
+                value={`${window.location.origin}/groups/${groupId}`}
+                className="flex-1 px-3 py-2 border border-blue-200 dark:border-blue-700 rounded-md bg-white dark:bg-gray-800 text-sm"
+              />
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => {
+                  navigator.clipboard.writeText(`${window.location.origin}/groups/${groupId}`);
+                  toast.success('Link copied to clipboard!');
+                }}
+              >
+                Copy
+              </Button>
+            </div>
+          </div>
+
+          {/* Current Members */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+              Current Members ({selectedGroup.members.length})
+            </h3>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {selectedGroup.members.map((member) => (
+                <div
+                  key={member.id}
+                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
+                      {member.user.firstName[0]}{member.user.lastName[0]}
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-gray-100">
+                        {member.user.firstName} {member.user.lastName}
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {member.user.email}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge className={member.role === 'ADMIN' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'}>
+                    {member.role}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Instructions */}
+          <div className="border-t dark:border-gray-700 pt-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              💡 <strong>Tip:</strong> Members can join by clicking the shared link or finding your group in the public groups list if it&apos;s set to public.
+            </p>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        title="Delete Group"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
+            <p className="text-red-800 dark:text-red-200 text-sm">
+              ⚠️ <strong>Warning:</strong> This action cannot be undone. All contributions and group data will be permanently deleted.
+            </p>
+          </div>
+          <p className="text-gray-700 dark:text-gray-300">
+            Are you sure you want to delete <strong>{selectedGroup.name}</strong>?
+          </p>
+          <div className="flex gap-3 justify-end">
+            <Button
+              variant="secondary"
+              onClick={() => setDeleteModalOpen(false)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={handleDeleteGroup}
+              isLoading={isDeleting}
+            >
+              Delete Group
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

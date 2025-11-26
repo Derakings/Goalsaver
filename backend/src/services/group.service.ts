@@ -14,8 +14,8 @@ export class GroupService {
         description: input.description,
         targetAmount: input.targetAmount,
         targetItem: input.targetItem,
-        deadline: input.deadline,
-        isPublic: input.isPublic,
+        deadline: input.deadline ? new Date(input.deadline) : null,
+        isPublic: input.isPublic ?? false,
         createdById: userId,
         members: {
           create: {
@@ -39,6 +39,28 @@ export class GroupService {
         },
       },
     });
+
+    // Create notification for group creation
+    await notificationService.createNotification({
+      userId,
+      title: 'Group Created',
+      message: `You created the group "${group.name}"`,
+      type: 'GROUP_CREATED',
+    });
+
+    // Send email to creator
+    const creator = await prisma.user.findUnique({ where: { id: userId } });
+    if (creator) {
+      const groupEmail = emailTemplates.groupCreated(creator.firstName, group.name, group.targetItem);
+      sendEmail({
+        to: creator.email,
+        subject: groupEmail.subject,
+        text: groupEmail.text,
+        html: groupEmail.html,
+      }).catch((error) => {
+        console.error('Failed to send group creation email:', error);
+      });
+    }
 
     return group;
   }
@@ -251,11 +273,13 @@ export class GroupService {
 
       // Send email to new member
       const joinEmail = emailTemplates.groupJoined(newMember.firstName, group.name);
-      await sendEmail({
+      sendEmail({
         to: newMember.email,
         subject: joinEmail.subject,
         text: joinEmail.text,
         html: joinEmail.html,
+      }).catch((error) => {
+        console.error('Failed to send group joined email:', error);
       });
 
       // Notify all existing members
@@ -264,7 +288,7 @@ export class GroupService {
           userId: existingMember.user.id,
           title: 'New Member',
           message: `${newMember.firstName} ${newMember.lastName} joined "${group.name}"`,
-          type: 'GROUP_JOINED',
+          type: 'NEW_MEMBER',
         });
 
         // Send email to existing members
@@ -273,11 +297,13 @@ export class GroupService {
           group.name,
           `${newMember.firstName} ${newMember.lastName}`
         );
-        await sendEmail({
+        sendEmail({
           to: existingMember.user.email,
           subject: memberEmail.subject,
           text: memberEmail.text,
           html: memberEmail.html,
+        }).catch((error) => {
+          console.error('Failed to send new member notification email:', error);
         });
       }
     }

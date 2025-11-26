@@ -42,4 +42,25 @@ router.put('/profile', authenticate, validate(updateProfileSchema), authControll
  */
 router.post('/logout', authController.logout.bind(authController));
 
+/**
+ * @route   POST /api/auth/verify-otp
+ * @desc    Verify OTP for email verification
+ * @access  Public
+ */
+router.post('/verify-otp', authController.verifyOTP.bind(authController));
+
+/**
+ * @route   POST /api/auth/resend-otp
+ * @desc    Resend OTP
+ * @access  Public
+ */
+router.post('/resend-otp', authController.resendOTP.bind(authController));
+
+/**
+ * @route   POST /api/auth/complete-tutorial
+ * @desc    Mark tutorial as completed
+ * @access  Private
+ */
+router.post('/complete-tutorial', authenticate, authController.completeTutorial.bind(authController));
+
 export default router;

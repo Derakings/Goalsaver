@@ -49,11 +49,19 @@ export default function CreateGroupPage() {
     setError(null);
 
     try {
-      // Ensure targetAmount is a proper number
-      const groupData = {
-        ...data,
+      // Ensure targetAmount is a proper number and clean optional fields
+      const groupData: any = {
+        name: data.name,
+        description: data.description,
         targetAmount: parseFloat(String(data.targetAmount)),
+        targetItem: data.targetItem,
+        isPublic: data.isPublic,
       };
+      
+      // Only include deadline if it has a value
+      if (data.deadline && data.deadline.trim() !== '') {
+        groupData.deadline = data.deadline;
+      }
       
       console.log('Creating group with data:', groupData);
       const newGroup = await createGroup(groupData);

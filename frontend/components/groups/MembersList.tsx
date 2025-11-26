@@ -9,8 +9,8 @@ interface MembersListProps {
 
 export function MembersList({ members }: MembersListProps) {
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h3 className="text-xl font-semibold text-gray-900 mb-4">
+    <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl shadow-2xl p-6 border border-gray-700">
+      <h3 className="text-xl font-semibold text-white mb-4">
         Members ({members.length})
       </h3>
 
@@ -18,7 +18,7 @@ export function MembersList({ members }: MembersListProps) {
         {members.map((member) => (
           <div
             key={member.id}
-            className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+            className="flex items-center justify-between p-4 bg-gray-800 rounded-lg"
           >
             <div className="flex items-center space-x-4">
               {/* Avatar */}
@@ -29,7 +29,7 @@ export function MembersList({ members }: MembersListProps) {
               {/* Info */}
               <div>
                 <div className="flex items-center space-x-2">
-                  <p className="font-medium text-gray-900">
+                  <p className="font-medium text-white">
                     {member.user.firstName} {member.user.lastName}
                   </p>
                   {member.role === 'ADMIN' && (
@@ -39,7 +39,7 @@ export function MembersList({ members }: MembersListProps) {
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-400">
                   Joined {formatDate(member.joinedAt)}
                 </p>
               </div>
@@ -49,7 +49,7 @@ export function MembersList({ members }: MembersListProps) {
       </div>
 
       {members.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-gray-400">
           <User className="w-12 h-12 mx-auto mb-2 opacity-50" />
           <p>No members yet</p>
         </div>

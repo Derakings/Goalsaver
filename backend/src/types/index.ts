@@ -46,8 +46,9 @@ export interface CreateGroupInput {
   description: string;
   targetAmount: number;
   targetItem: string;
-  deadline?: Date;
+  deadline?: string;
   isPublic: boolean;
+  imageUrl?: string;
 }
 
 export interface UpdateGroupInput {

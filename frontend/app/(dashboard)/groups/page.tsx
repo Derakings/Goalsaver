@@ -14,12 +14,14 @@ export default function GroupsPage() {
   const { groups, fetchGroups, loading } = useGroups();
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredGroups, setFilteredGroups] = useState<Group[]>([]);
+  const [activeTab, setActiveTab] = useState<'my-groups' | 'all-groups'>('my-groups');
 
   useEffect(() => {
-    fetchGroups().catch((error) => {
+    const myGroupsOnly = activeTab === 'my-groups';
+    fetchGroups(myGroupsOnly).catch((error) => {
       console.error('Failed to fetch groups:', error);
     });
-  }, []);
+  }, [activeTab]);
 
   useEffect(() => {
     if (searchTerm) {
@@ -51,6 +53,30 @@ export default function GroupsPage() {
             Create Group
           </Button>
         </Link>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex space-x-2 border-b border-gray-700">
+        <button
+          onClick={() => setActiveTab('my-groups')}
+          className={`px-6 py-3 font-medium transition-all ${
+            activeTab === 'my-groups'
+              ? 'text-blue-400 border-b-2 border-blue-400'
+              : 'text-gray-400 hover:text-gray-300'
+          }`}
+        >
+          My Groups
+        </button>
+        <button
+          onClick={() => setActiveTab('all-groups')}
+          className={`px-6 py-3 font-medium transition-all ${
+            activeTab === 'all-groups'
+              ? 'text-blue-400 border-b-2 border-blue-400'
+              : 'text-gray-400 hover:text-gray-300'
+          }`}
+        >
+          Discover Groups
+        </button>
       </div>
 
       {/* Search */}

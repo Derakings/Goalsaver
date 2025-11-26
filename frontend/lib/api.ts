@@ -74,12 +74,25 @@ export const authApi = {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
   },
+
+  verifyOTP: async (userId: string, code: string): Promise<void> => {
+    await api.post('/auth/verify-otp', { userId, code });
+  },
+
+  resendOTP: async (userId: string): Promise<void> => {
+    await api.post('/auth/resend-otp', { userId });
+  },
+
+  completeTutorial: async (): Promise<void> => {
+    await api.post('/auth/complete-tutorial');
+  },
 };
 
 // Groups API
 export const groupsApi = {
-  getAll: async (): Promise<Group[]> => {
-    const response = await api.get<{ success: boolean; data: Group[] }>('/groups');
+  getAll: async (myGroupsOnly = false): Promise<Group[]> => {
+    const params = myGroupsOnly ? '?myGroups=true' : '';
+    const response = await api.get<{ success: boolean; data: Group[] }>(`/groups${params}`);
     return response.data.data;
   },
 

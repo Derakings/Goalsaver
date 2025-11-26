@@ -2,12 +2,16 @@ import { Request, Response, NextFunction } from 'express';
 import { logger } from '../utils/logger';
 
 export class AppError extends Error {
+  public data?: any;
+
   constructor(
     public statusCode: number,
     public message: string,
+    data?: any,
     public isOperational = true
   ) {
     super(message);
+    this.data = data;
     Object.setPrototypeOf(this, AppError.prototype);
   }
 }
@@ -29,6 +33,7 @@ export const errorHandler = (
     res.status(err.statusCode).json({
       success: false,
       error: err.message,
+      ...(err.data && { data: err.data }),
     });
     return;
   }

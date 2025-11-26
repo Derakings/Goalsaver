@@ -10,17 +10,20 @@ datasource db {
 }
 
 model User {
-  id            String          @id @default(uuid())
-  email         String          @unique
-  password      String
-  firstName     String
-  lastName      String
-  phone         String?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  groups        GroupMember[]
-  contributions Contribution[]
-  notifications Notification[]
+  id                     String          @id @default(uuid())
+  email                  String          @unique
+  password               String
+  firstName              String
+  lastName               String
+  phone                  String?
+  isEmailVerified        Boolean         @default(false)
+  hasCompletedTutorial   Boolean         @default(false)
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+  groups                 GroupMember[]
+  contributions          Contribution[]
+  notifications          Notification[]
+  otps                   OTP[]
 }
 
 model Group {
@@ -97,6 +100,21 @@ model Notification {
   @@index([createdAt])
 }
 
+model OTP {
+  id        String      @id @default(uuid())
+  userId    String
+  code      String
+  purpose   OTPPurpose
+  used      Boolean     @default(false)
+  expiresAt DateTime
+  createdAt DateTime    @default(now())
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([code])
+  @@index([expiresAt])
+}
+
 enum GroupStatus {
   SAVING
   TARGET_REACHED
@@ -119,9 +137,17 @@ enum PurchaseStatus {
 
 enum NotificationType {
   GROUP_JOINED
+  NEW_MEMBER
   CONTRIBUTION_MADE
   TARGET_MILESTONE
   TARGET_REACHED
   PURCHASE_INITIATED
   PURCHASE_COMPLETED
+  NEW_LOGIN
+  GROUP_CREATED
+}
+
+enum OTPPurpose {
+  VERIFICATION
+  PASSWORD_RESET
 }

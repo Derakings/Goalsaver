@@ -5,6 +5,7 @@ export interface User {
   firstName: string;
   lastName: string;
   phone?: string;
+  hasCompletedTutorial?: boolean;
   createdAt: string;
 }
 

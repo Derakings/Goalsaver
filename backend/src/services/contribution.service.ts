@@ -87,22 +87,24 @@ export class ContributionService {
       await notificationService.createNotification({
         userId: groupMember.user.id,
         title: 'New Contribution',
-        message: `${contributor.firstName} ${contributor.lastName} contributed $${input.amount} to "${group.name}"`,
+        message: `${contributor.firstName} ${contributor.lastName} contributed ₦${input.amount} to "${group.name}"`,
         type: 'CONTRIBUTION_MADE',
       });
 
-      // Send email notification
+      // Send email notification (non-blocking)
       const contributionEmail = emailTemplates.contributionMade(
         groupMember.user.firstName,
         group.name,
-        `$${input.amount}`,
+        `₦${input.amount}`,
         `${contributor.firstName} ${contributor.lastName}`
       );
-      await sendEmail({
+      sendEmail({
         to: groupMember.user.email,
         subject: contributionEmail.subject,
         text: contributionEmail.text,
         html: contributionEmail.html,
+      }).catch((error) => {
+        console.error('Failed to send contribution email:', error);
       });
     }
 
@@ -123,17 +125,19 @@ export class ContributionService {
             type: 'TARGET_MILESTONE',
           });
 
-          // Send milestone email
+          // Send milestone email (non-blocking)
           const milestoneEmail = emailTemplates.targetMilestone(
             groupMember.user.firstName,
             group.name,
             milestone
           );
-          await sendEmail({
+          sendEmail({
             to: groupMember.user.email,
             subject: milestoneEmail.subject,
             text: milestoneEmail.text,
             html: milestoneEmail.html,
+          }).catch((error) => {
+            console.error('Failed to send milestone email:', error);
           });
         }
       }
